@@ -1,5 +1,9 @@
 --Bryan Ambriz
 
+local margin = 80
+local num_bricks = 8
+local base_x = 100
+local base_y = 200
 --Game objects
 
 --Ball
@@ -27,6 +31,8 @@ brick.height = 30
 
 --Bricks
 local bricks = {}
+bricks.brick_height = 20
+bricks.brick_width = 40
 bricks.current_level_bricks = {}
 
 --bricks functions
@@ -36,19 +42,31 @@ function bricks.new_brick( position_x, position_y, width, height)
              width = width or bricks.brick_width,           --(*1)
              height = height or bricks.brick_height })
 end
+function bricks.add_to_current_level_bricks(brick)
+  table.insert( bricks.current_level_bricks, brick)
+end
+--
 
+
+     
+--
 --update functions
+
 function ball.update(dt)
   ball.position_x = ball.position_x + ball.speed_x * dt --(*1)
   ball.position_y = ball.position_y + ball.speed_y * dt
 end
-function platform.update(dt)
+function platform.update(dt) 
   if love.keyboard.isDown('right') then 
     platform.position_x = platform.position_x+(platform.speed_x*dt)
   end
   if love.keyboard.isDown('left') then 
     platform.position_x = platform.position_x-(platform.speed_x*dt)
   end
+end
+
+function bricks.update_brick(single_brick)
+  
 end
 
 -- draw functions
@@ -69,10 +87,32 @@ function platform.draw()
                             platform.position_y,
                             platform.width,
                             platform.height)
+end 
+
+function bricks.draw_brick(single_brick)
+  love.graphics.rectangle( 'line',
+                            single_brick.position_x,
+                            single_brick.position_y,
+                            single_brick.width,
+                            single_brick.height
+    )
 end
 
+
+
+function bricks.draw()
+    for _, brick in pairs( bricks.current_level_bricks ) do   --(*1)
+      bricks.draw_brick( brick )
+   end
+  end
+function bricks.update(dt)
+   for _, brick in pairs( bricks.current_level_bricks ) do
+      bricks.update_brick( brick )
+   end
+end
 --Main functions
 function love.load()
+  bricks.make_level()
 end
 
 function love.update(dt)
@@ -80,6 +120,8 @@ function love.update(dt)
   ball.update(dt)
   --platform controls
   platform.update(dt)
+  --level update
+  bricks.update( dt )
   
 end
 
@@ -89,15 +131,18 @@ function love.draw()
   ball.draw()
   -- draw platform
   platform.draw()
-  -- draw brick
-  love.graphics.rectangle( 'line',
-                            brick.position_x,
-                            brick.position_y,
-                            brick.width,
-                            brick.height)
+  -- draw level
+  bricks.draw()
 end
 
 --what to do when game quits
 function love.quit()
   print("Thank you for playing.")
+end
+
+function bricks.make_level()
+  --
+    for i=1,num_bricks do bricks.add_to_current_level_bricks(bricks.new_brick((base_x+(margin*(i-1))), base_y))
+        end 
+   
 end
