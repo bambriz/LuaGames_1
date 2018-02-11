@@ -114,11 +114,22 @@ function collisions.resolve_collisions()
   
 function collisions.check_rectangles_overlap( alpha, omega)
       local overlap = false
+      local shift_omega_x, shift_omega_y = 0, 0
       if not(alpha.x +alpha.width < omega.x or omega.x + omega.width < alpha.x or 
         alpha.y + alpha.height < omega.y or omega.y + omega.height < alpha.y) then 
          overlap = true
+        if(alpha.x + alpha.width /2) <(omega.x +omega.width/2) then
+          shift_omega_x = (alpha.x+alpha.width) - omega.x 
+        else 
+          shift_omega_x = alpha.x - (omega.x +omega.width)
+        end
+        if(alpha.y + alpha.height /2) <(omega.y +omega.height/2) then
+          shift_omega_y = (alpha.y+alpha.height) - omega.y 
+        else 
+          shift_omega_y = alpha.y - (omega.y +omega.height)
+        end
       end
-      return overlap
+      return overlap, shift_omega_x, shift_omega_y
     end
     
 function collisions.ball_platform_collision( ball, platform )
