@@ -149,6 +149,7 @@ function collisions.ball_platform_collision( ball, platform )
 end
 
 function collisions.ball_bricks_collision( ball, bricks )
+  local overlap, shift_ball_x, shift_ball_y
    local b = { x = ball.position_x - ball.radius,           --(*1)
                y = ball.position_y - ball.radius,
                width = 2 * ball.radius,
@@ -158,13 +159,18 @@ function collisions.ball_bricks_collision( ball, bricks )
                   y = brick.position_y,
                   width = brick.width,
                   height = brick.height }
-      if collisions.check_rectangles_overlap( a, b ) then   --(*4)
-         print( "ball-brick collision" )
+      overlap, shift_ball_x, shift_ball_y =
+         collisions.check_rectangles_overlap( a, b )
+       if overlap then    
+         ball.rebound( shift_ball_x, shift_ball_y )
+         bricks.brick_hit_by_ball( i, brick,                     --(*1)
+                                   shift_ball_x, shift_ball_y )
       end
    end
 end
 
 function collisions.ball_walls_collision( ball, walls )
+  local overlap, shift_ball_x, shift_ball_y
    local b = { x = ball.position_x - ball.radius,           --(*1)
                y = ball.position_y - ball.radius,
                width = 2 * ball.radius,
@@ -174,13 +180,15 @@ function collisions.ball_walls_collision( ball, walls )
                   y = wall.position_y,
                   width = wall.width,
                   height = wall.height }
-      if collisions.check_rectangles_overlap( a, b ) then   --(*4)
-         print( "ball-wall collision" )
-      end
+       overlap, shift_ball_x, shift_ball_y = collisions.check_rectangles_overlap( a, b )
+   if overlap then   --(*2)
+      ball.rebound(shift_ball_x, shift_ball_y)                --(*3)
+   end    
    end
 end
 
 function collisions.platform_walls_collision( ball, walls )
+  local overlap, shift_platform_x, shift_platform_y
    local b = { x = platform.position_x,                  --(*1)
                y = platform.position_y,
                width = platform.width,
@@ -190,16 +198,47 @@ function collisions.platform_walls_collision( ball, walls )
                   y = wall.position_y,
                   width = wall.width,
                   height = wall.height }
-      if collisions.check_rectangles_overlap( a, b ) then   --(*4)
-         print( "platform-wall collision" )
-      end
+      overlap, shift_platform_x, shift_platform_y = collisions.check_rectangles_overlap( a, b )
+   if overlap then   --(*2)
+      platform.barrier(shift_platform_x, shift_platform_y)                --(*3)
+   end 
    end
 end
 
 function love.keyreleased( key, code )
+  
    if  key == 'escape' then
       love.event.quit()
    end    
+end
+function ball.rebound( shift_ball )
+   local min_shift = math.min( math.abs( shift_ball.x ),
+                               math.abs( shift_ball.y ) )
+   if math.abs( shift_ball.x ) == min_shift then
+      shift_ball.y = 0
+   else
+      shift_ball.x = 0
+   end
+   ball.position = ball.position + shift_ball
+   if shift_ball.x ~= 0 then
+      ball.speed.x = -ball.speed.x
+   end
+   if shift_ball.y ~= 0 then
+      ball.speed.y = -ball.speed.y
+   end
+end
+function platform.barrier(shift_platform)
+  local min_shift = math.min( math.abs( shift_platform.x ),
+                               math.abs( shift_platform.y ) )
+   if math.abs( shift_platform.x ) == min_shift then
+      shift_platform.y = 0
+   else
+      shift_platform.x = 0
+   end
+   platform.position = platform.position + shift_platform
+  end
+function bricks.brick_hit_by_ball( i, brick, shift_ball_x, shift_ball_y )
+   table.remove( bricks.current_level_bricks, i )                --(*2)
 end
 --update functions
 
