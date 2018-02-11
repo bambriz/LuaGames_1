@@ -1,9 +1,8 @@
 --Bryan Ambriz
 
 local margin = 80
-local num_bricks = 8
 local base_x = 100
-local base_y = 200
+local base_y = 100
 --Game objects
 
 --Ball
@@ -29,12 +28,66 @@ brick.position_y = 100
 brick.width = 50
 brick.height = 30
 
+--wall
+local wall = {}
+wall.position_x = 0
+wall.position_y = 0
+wall.width = 50
+wall.height = 30
+--walls
+local walls = {}
+walls.current_level_walls = {}
+walls.wall_thickness = 10
+
 --Bricks
 local bricks = {}
-bricks.brick_height = 20
-bricks.brick_width = 40
+bricks.rows = 8                    --(*1a)
+bricks.columns = 11
+bricks.top_left_position_x = 70
+bricks.top_left_position_y = 50
+bricks.brick_width = 50
+bricks.brick_height = 30
+bricks.horizontal_distance = 10
+bricks.vertical_distance = 15      --(*1b)
 bricks.current_level_bricks = {}
 
+--walls functions
+function walls.new_wall( position_x, position_y, width, height )
+   return( { position_x = position_x,
+             position_y = position_y,
+             width = width,
+             height = height } )
+end
+function walls.construct_walls()
+   local left_wall = walls.new_wall(
+      0,
+      0,
+      walls.wall_thickness,
+      love.graphics.getHeight()
+   )
+   local right_wall = walls.new_wall(
+      love.graphics.getWidth() - walls.wall_thickness,
+      0,
+      walls.wall_thickness,
+      love.graphics.getHeight()
+   )
+   local top_wall = walls.new_wall(
+      0,
+      0,
+      love.graphics.getWidth(),
+      walls.wall_thickness
+   )
+   local bottom_wall = walls.new_wall(
+      0,
+      love.graphics.getHeight() - walls.wall_thickness,
+      love.graphics.getWidth(),
+      walls.wall_thickness
+   ) 
+   walls.current_level_walls["left"] = left_wall
+   walls.current_level_walls["right"] = right_wall
+   walls.current_level_walls["top"] = top_wall
+   walls.current_level_walls["bottom"] = bottom_wall
+end
 --bricks functions
 function bricks.new_brick( position_x, position_y, width, height)
   return({ position_x = position_x,
@@ -68,7 +121,19 @@ end
 function bricks.update_brick(single_brick)
   
 end
-
+function walls.update_wall(single_wall)
+  
+  end
+function bricks.update(dt)
+   for _, brick in pairs( bricks.current_level_bricks ) do
+      bricks.update_brick( brick )
+   end
+end
+function walls.update(dt)
+    for _, wall in pairs( walls.current_level_walls ) do
+      walls.update_wall( wall)
+   end
+  end
 -- draw functions
 function ball.draw()
    local segments_in_circle = 16
@@ -97,7 +162,14 @@ function bricks.draw_brick(single_brick)
                             single_brick.height
     )
 end
-
+function walls.draw_wall(single_wall)
+   love.graphics.rectangle( 'line',
+                            single_wall.position_x,
+                            single_wall.position_y,
+                            single_wall.width,
+                            single_wall.height
+    )
+  end
 
 
 function bricks.draw()
@@ -105,14 +177,17 @@ function bricks.draw()
       bricks.draw_brick( brick )
    end
   end
-function bricks.update(dt)
-   for _, brick in pairs( bricks.current_level_bricks ) do
-      bricks.update_brick( brick )
+  
+function walls.draw()
+    for _, wall in pairs( walls.current_level_walls ) do   --(*1)
+      walls.draw_wall( wall )
    end
-end
+  end
+
 --Main functions
 function love.load()
   bricks.make_level()
+  walls.construct_walls()
 end
 
 function love.update(dt)
@@ -122,6 +197,7 @@ function love.update(dt)
   platform.update(dt)
   --level update
   bricks.update( dt )
+  walls.update(dt)
   
 end
 
@@ -133,6 +209,7 @@ function love.draw()
   platform.draw()
   -- draw level
   bricks.draw()
+  walls.draw()
 end
 
 --what to do when game quits
@@ -142,7 +219,18 @@ end
 
 function bricks.make_level()
   --
-    for i=1,num_bricks do bricks.add_to_current_level_bricks(bricks.new_brick((base_x+(margin*(i-1))), base_y))
-        end 
+     for row = 1, bricks.rows do
+      for col = 1, bricks.columns do
+         local new_brick_position_x = bricks.top_left_position_x +   --(*2)
+            ( col - 1 ) *
+            ( bricks.brick_width + bricks.horizontal_distance )
+         local new_brick_position_y = bricks.top_left_position_y +   --(*2)
+            ( row - 1 ) *
+            ( bricks.brick_height + bricks.vertical_distance )     
+         local new_brick = bricks.new_brick( new_brick_position_x,   --(*3)
+                                             new_brick_position_y )
+         bricks.add_to_current_level_bricks( new_brick )             --(*4)
+      end      
+   end 
    
 end
