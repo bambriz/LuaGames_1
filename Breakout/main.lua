@@ -133,6 +133,7 @@ function collisions.check_rectangles_overlap( alpha, omega)
     end
     
 function collisions.ball_platform_collision( ball, platform )
+    local overlap, shift_ball_x, shift_ball_y
    local a = { x = platform.position_x,                  --(*1)
                y = platform.position_y,
                width = platform.width,
@@ -141,8 +142,9 @@ function collisions.ball_platform_collision( ball, platform )
                y = ball.position_y - ball.radius,
                width = 2 * ball.radius,
                height = 2 * ball.radius }
-   if collisions.check_rectangles_overlap( a, b ) then   --(*2)
-      print( "ball-platform collision" )                 --(*3)
+    overlap, shift_ball_x, shift_ball_y = collisions.check_rectangles_overlap( a, b )
+   if overlap then   --(*2)
+      ball.rebound(shift_ball_x, shift_ball_y)                --(*3)
    end      
 end
 
