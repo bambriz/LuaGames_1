@@ -211,7 +211,10 @@ function love.keyreleased( key, code )
       love.event.quit()
    end    
 end
-function ball.rebound( shift_ball )
+function ball.rebound( shift_ball_x , shift_ball_y)
+  local shift_ball = {}
+  shift_ball.x = shift_ball_x
+  shift_ball.y = shift_ball_y
    local min_shift = math.min( math.abs( shift_ball.x ),
                                math.abs( shift_ball.y ) )
    if math.abs( shift_ball.x ) == min_shift then
@@ -219,15 +222,19 @@ function ball.rebound( shift_ball )
    else
       shift_ball.x = 0
    end
-   ball.position = ball.position + shift_ball
+   ball.position_x = ball.position_x + shift_ball.x
+   ball.position_y = ball.position_y + shift_ball.y
    if shift_ball.x ~= 0 then
-      ball.speed.x = -ball.speed.x
+      ball.speed_x = -ball.speed_x
    end
    if shift_ball.y ~= 0 then
-      ball.speed.y = -ball.speed.y
+      ball.speed_y = -ball.speed_y
    end
 end
-function platform.barrier(shift_platform)
+function platform.barrier(shift_platform_x, shift_platform_y)
+  local shift_platform = {}
+  shift_platform.x = shift_platform_x
+  shift_platform.y = shift_platform_y
   local min_shift = math.min( math.abs( shift_platform.x ),
                                math.abs( shift_platform.y ) )
    if math.abs( shift_platform.x ) == min_shift then
@@ -235,7 +242,8 @@ function platform.barrier(shift_platform)
    else
       shift_platform.x = 0
    end
-   platform.position = platform.position + shift_platform
+   platform.position_x = platform.position_x + shift_platform.x
+   platform.position_y = platform.position_y + shift_platform.y
   end
 function bricks.brick_hit_by_ball( i, brick, shift_ball_x, shift_ball_y )
    table.remove( bricks.current_level_bricks, i )                --(*2)
